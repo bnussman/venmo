@@ -15,9 +15,9 @@ const v = new Venmo({
   bankAccountNumber: "you-bank-account-number"
 });
 
-const token = await login();
+const token = await v.login();
 
-const identities = await getIdentities(token);
+const identities = await v.getIdentities();
 
 const me = identities.find(i => i.identityType === 'personal');
 
@@ -25,7 +25,7 @@ if (!me) {
   throw new Error("Unable to find my identity");
 }
 
-const stories = await getStories(token, 'me', me.externalId);
+const stories = await v.getStories('me', me.externalId);
 
 console.log("Access Token", token)
 console.log("Identities", identities)
