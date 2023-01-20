@@ -6,6 +6,18 @@ Venmo API for Typescript
 This project is a Typescript port of the implimentation in [venmo-auto-transfer](https://github.com/radian-software/venmo-auto-transfer)
 
 ## Example Usage
+
+```sh
+# with npm
+npm install @banksnussman/venmo
+# with yarn
+yarn add @banksnussman/venmo
+# with pnpm
+pnpm add @banksnussman/venmo
+# with bun
+bun add @banksnussman/venmo
+```
+
 ```typescript
 import { Venmo } from "@banksnussman/venmo";
 
