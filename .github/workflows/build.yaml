@@ -60,7 +60,7 @@ jobs:
           path: dist/
 
       - name: 🔴 NPM publish
-        continue-on-error: false
+        continue-on-error: true
         env:
           NPM_TOKEN: ${{secrets.NPM_TOKEN}}
         run: |
