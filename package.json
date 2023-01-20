@@ -1,11 +1,11 @@
 {
   "name": "@banksnussman/venmo",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Interact with Venmo from Typescript",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "browser": "dist/index.global.js",
-  "types": "dist/index.d.ts",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "browser": "./dist/index.global.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/bnussman/venmo.git"
