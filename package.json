@@ -1,19 +1,26 @@
 {
   "name": "venmo",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.0",
+  "description": "Interact with Venmo from Typescript",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "browser": "dist/index.global.js",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch"
+    "build": "tsup",
+    "dev": "tsup --watch"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["venmo", "api"],
+  "author": "Banks Nussman",
   "volta": {
     "node": "19.4.0"
   },
   "devDependencies": {
+    "@types/uuid": "^9.0.0",
+    "tsup": "^6.5.0",
     "typescript": "^4.9.4"
-  }
+  },
+  "dependencies": {
+    "uuid": "^9.0.0"
+  },
+  "files": ["dist"]
 }
