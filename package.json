@@ -1,5 +1,5 @@
 {
-  "name": "venmo",
+  "name": "@banksnussman/venmo",
   "version": "0.1.0",
   "description": "Interact with Venmo from Typescript",
   "main": "dist/index.js",

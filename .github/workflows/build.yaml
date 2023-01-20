@@ -1,0 +1,99 @@
+name: Build
+
+on:
+  pull_request:
+    paths-ignore:
+      - "**.md"
+  push:
+    paths-ignore:
+      - "**.md"
+
+jobs:
+  build:
+    name: 🔨 Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: 🟩 Setup Node.js 18
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+          cache: pnpm
+
+
+      - uses: pnpm/action-setup@v2.2.4
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          run_install: true
+
+      - name: 🔨 Build
+        run: pnpm build
+
+      - name: 💾 Archive artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist/
+
+  publish_npm:
+    name: 🔴 NPM publish
+    needs: ["build"]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: 🟩 Setup Node.js 18
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+
+      - name: ⬇️ Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: dist
+
+      - name: 🔴 NPM publish
+        continue-on-error: true
+        env:
+          NPM_TOKEN: ${{secrets.NPM_TOKEN}}
+        run: |
+          npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
+          npm publish
+
+  publish_github:
+    name: 😺 GitHub publish
+    needs: ["build"]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: 🟩 Setup Node.js 18
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+
+      - name: ⬇️ Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: dist
+
+      - name: Update package.json name 📝
+        uses: jossef/action-set-json-field@v1
+        with:
+          file: package.json
+          field: name
+          value: "@${{ github.repository_owner }}/${{ github.event.repository.name }}"
+
+      - name: 😺 GitHub publish
+        continue-on-error: true
+        env:
+          OWNER: ${{ github.repository_owner }}
+          NPM_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          echo "@${OWNER}:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" >> .npmrc
+          cat .npmrc
+          npm publish
