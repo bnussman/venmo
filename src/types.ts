@@ -157,7 +157,7 @@ export interface Identity {
 }
 
 export interface Wallet {
-  id: string
+  id: string // this id is what you pass as fundingSourceID to make a payment 
   assets?: Assets
   instrumentType: string
   name: string
@@ -201,13 +201,13 @@ export interface Roles {
 }
 
 export interface PaymentOptions {
-  targetUserDetails: TargetUserDetails
-  amountInCents: number
-  audience: string
-  note: string
-  type: "pay" | "request"
-  fundingSourceID: string
-  eligibilityToken: string
+  targetUserDetails: TargetUserDetails; // we need to get user ids from the Suggest or People graphql call
+  amountInCents: number;
+  audience: 'public' | 'private';
+  note: string;
+  type: "pay" | "request";
+  fundingSourceID: string; // comes from getUserFundingInstruments graphql call
+  eligibilityToken: string; // comes from eligibility endpoint
 }
 
 export interface TargetUserDetails {
