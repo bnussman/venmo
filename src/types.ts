@@ -113,3 +113,103 @@ export enum TitleType {
 export enum Type {
   Payment = "payment",
 }
+
+export interface EligibilityOptions {
+  targetType: "user_id";
+  targetId: string;
+  amountInCents: number;
+  action: "pay" | "request"
+  note: string;
+}
+
+export interface Fee {
+  productUri: string;
+  appliedTo: string;
+  feePercentage: number;
+  baseFeeAmount: number;
+  calculatedFeeAmountInCents: number;
+  feeToken: string;
+}
+
+export interface EligibilityResponse {
+  eligible: boolean;
+  eligibilityToken: string;
+  fees: Fee[];
+}
+
+export interface FundingInstrumentsGraphQLResponse {
+  data: Data
+}
+
+export interface Data {
+  profile: Profile
+}
+
+export interface Profile {
+  identity: Identity
+  wallet: Wallet[]
+  __typename: string
+}
+
+export interface Identity {
+  capabilities: string[]
+  __typename: string
+}
+
+export interface Wallet {
+  id: string
+  assets?: Assets
+  instrumentType: string
+  name: string
+  fees: any[]
+  metadata: Metadata
+  roles: Roles
+  __typename: string
+}
+
+export interface Assets {
+  logoThumbnail: string
+  __typename: string
+}
+
+export interface Metadata {
+  availableBalance?: AvailableBalance
+  __typename: string
+  bankName?: string
+  isVerified?: boolean
+  lastFourDigits?: string
+  uniqueIdentifier?: string
+  issuerName?: string
+  networkName?: string
+  isVenmoCard?: boolean
+  expirationDate?: string
+  expirationStatus?: string
+  quasiCash?: boolean
+}
+
+export interface AvailableBalance {
+  value: number
+  transactionType: any
+  displayString: string
+  __typename: string
+}
+
+export interface Roles {
+  merchantPayments: string
+  peerPayments: string
+  __typename: string
+}
+
+export interface PaymentOptions {
+  targetUserDetails: TargetUserDetails
+  amountInCents: number
+  audience: string
+  note: string
+  type: "pay" | "request"
+  fundingSourceID: string
+  eligibilityToken: string
+}
+
+export interface TargetUserDetails {
+  userId: string
+}

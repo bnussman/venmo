@@ -1,5 +1,5 @@
 import { DEVICE_ID, USER_AGENT } from './constants';
-import { Identity, LoginResponse, Options, StoriesResponse } from './types';
+import { EligibilityOptions, EligibilityResponse, FundingInstrumentsGraphQLResponse, Identity, LoginResponse, Options, PaymentOptions, StoriesResponse } from './types';
 
 export class Venmo {
   private options: Options;
@@ -159,5 +159,55 @@ export class Venmo {
     const data = await result.json() as StoriesResponse;
 
     return data;
+  }
+
+  public async getEligibility(eligibilityOptions: EligibilityOptions): Promise<EligibilityResponse> {
+    if (!this.accessToken) {
+      throw new Error("You are not authenticated. Maybe run login first.");
+    }
+
+    const result = await fetch(
+      `https://account.venmo.com/api/eligibility`,
+      {
+        method: "POST",
+        headers: {
+          Cookie: `v_id=${DEVICE_ID}; api_access_token=${this.accessToken};`,
+          "user-agent": USER_AGENT,
+        },
+        body: JSON.stringify(eligibilityOptions) 
+      },
+    );
+
+    const data = await result.json() as EligibilityResponse;
+
+    return data;
+  }
+
+  public async getFundingInstruments() {
+    const result = await fetch("https://api.venmo.com/graphql", {
+      method: "POST",
+      body: '{"operationName":"getUserFundingInstruments","variables":{},"query":"query getUserFundingInstruments {\n  profile {\n    ... on Profile {\n      identity {\n        ... on Identity {\n          capabilities\n          __typename\n        }\n        __typename\n      }\n      wallet {\n        id\n        assets {\n          logoThumbnail\n          __typename\n        }\n        instrumentType\n        name\n        fees {\n          feeType\n          fixedAmount\n          variablePercentage\n          __typename\n        }\n        metadata {\n          ...BalanceMetadata\n          ... on BankFundingInstrumentMetadata {\n            bankName\n            isVerified\n            lastFourDigits\n            uniqueIdentifier\n            __typename\n          }\n          ... on CardFundingInstrumentMetadata {\n            issuerName\n            lastFourDigits\n            networkName\n            isVenmoCard\n            expirationDate\n            expirationStatus\n            quasiCash\n            __typename\n          }\n          __typename\n        }\n        roles {\n          merchantPayments\n          peerPayments\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment BalanceMetadata on BalanceFundingInstrumentMetadata {\n  availableBalance {\n    value\n    transactionType\n    displayString\n    __typename\n  }\n  __typename\n}\n"}',
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+        "user-agent": USER_AGENT,
+      }
+    });
+
+    const data = await result.json() as FundingInstrumentsGraphQLResponse;
+
+    return data;
+  }
+
+  public async pay(paymentOptions: PaymentOptions) {
+    const result = await fetch("https://account.venmo.com/api/payments", {
+      method: "POST",
+      headers: {
+        Cookie: `v_id=${DEVICE_ID}; api_access_token=${this.accessToken};`,
+        "user-agent": USER_AGENT,
+      },
+      body: JSON.stringify(paymentOptions)
+    });
+
+    return true;
   }
 }
