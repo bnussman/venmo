@@ -21,6 +21,7 @@ jobs:
         id: pnpm-install
         with:
           run_install: false
+          version: latest
 
       - name: 🟩 Setup Node.js 18
         uses: actions/setup-node@v2
