@@ -5,6 +5,10 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "browser": "dist/index.global.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bnussman/venmo.git"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch"
