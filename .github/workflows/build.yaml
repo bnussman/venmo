@@ -59,12 +59,12 @@ jobs:
           name: dist
 
       - name: 🔴 NPM publish
-        continue-on-error: true
+        continue-on-error: false
         env:
           NPM_TOKEN: ${{secrets.NPM_TOKEN}}
         run: |
           npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
-          npm publish
+          npm publish --access public
 
   publish_github:
     name: 😺 GitHub publish
@@ -99,4 +99,4 @@ jobs:
           echo "@${OWNER}:registry=https://npm.pkg.github.com" >> .npmrc
           echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" >> .npmrc
           cat .npmrc
-          npm publish
+          npm publish --access public
