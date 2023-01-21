@@ -1,5 +1,6 @@
 import request, { gql } from 'graphql-request';
 import { DEVICE_ID, GRAPHQL_ENDPOINT, USER_AGENT } from './constants';
+import { PeopleQuery, Person } from './graphql/people';
 import { EligibilityOptions, EligibilityResponse, FundingInstrumentsGraphQLResponse, Identity, LoginResponse, Options, PaymentOptions, StoriesResponse } from './types';
 
 export class Venmo {
@@ -199,33 +200,10 @@ export class Venmo {
     return data;
   }
 
-  public async getPeople(name: string) {
-    const query = gql`
-    query People($input: SearchInput!) {
-      search(input: $input) {
-        people {
-          edges {
-            node {
-              displayName
-              id
-              type
-              avatar {
-                url
-              }
-              handle
-              firstName
-              lastName
-              isFriend
-            }
-          }
-        }
-      }
-    }
-  `;
-
+  public async getPerson(name: string): Promise<Person | undefined> {
     const data = await request(
       GRAPHQL_ENDPOINT,
-      query,
+      PeopleQuery,
       { input: { name } },
       {
           Authorization: `Bearer ${this.accessToken}`,
@@ -233,7 +211,7 @@ export class Venmo {
       }
     )
   
-    return data;
+    return data.search.people.edges[0]?.node;
   }
 
   public async pay(paymentOptions: PaymentOptions) {
