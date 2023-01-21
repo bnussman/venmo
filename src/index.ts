@@ -203,7 +203,7 @@ export class Venmo {
     const query = gql`
     query People($input: SearchInput!) {
       search(input: $input) {
-        people(input: $peopleInput) {
+        people {
           edges {
             node {
               displayName
