@@ -1,4 +1,5 @@
-import { DEVICE_ID, USER_AGENT } from './constants';
+import request, { gql } from 'graphql-request';
+import { DEVICE_ID, GRAPHQL_ENDPOINT, USER_AGENT } from './constants';
 import { EligibilityOptions, EligibilityResponse, FundingInstrumentsGraphQLResponse, Identity, LoginResponse, Options, PaymentOptions, StoriesResponse } from './types';
 
 export class Venmo {
@@ -195,6 +196,43 @@ export class Venmo {
 
     const data = await result.json() as FundingInstrumentsGraphQLResponse;
 
+    return data;
+  }
+
+  public async getPeople(name: string) {
+    const query = gql`
+    query People($input: SearchInput!) {
+      search(input: $input) {
+        people(input: $peopleInput) {
+          edges {
+            node {
+              displayName
+              id
+              type
+              avatar {
+                url
+              }
+              handle
+              firstName
+              lastName
+              isFriend
+            }
+          }
+        }
+      }
+    }
+  `;
+
+    const data = await request(
+      GRAPHQL_ENDPOINT,
+      query,
+      { input: { name } },
+      {
+          Authorization: `Bearer ${this.accessToken}`,
+          "user-agent": USER_AGENT,
+      }
+    )
+  
     return data;
   }
 

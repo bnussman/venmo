@@ -1,6 +1,6 @@
 {
   "name": "@banksnussman/venmo",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Interact with Venmo from Typescript",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
@@ -14,7 +14,10 @@
     "build": "tsup",
     "dev": "tsup --watch"
   },
-  "keywords": ["venmo", "api"],
+  "keywords": [
+    "venmo",
+    "api"
+  ],
   "author": "Banks Nussman",
   "volta": {
     "node": "19.4.0"
@@ -25,7 +28,11 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
+    "graphql": "^16.6.0",
+    "graphql-request": "^5.1.0",
     "uuid": "^9.0.0"
   },
-  "files": ["dist"]
+  "files": [
+    "dist"
+  ]
 }
