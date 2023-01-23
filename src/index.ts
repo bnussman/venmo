@@ -224,15 +224,20 @@ export class Venmo {
   }
 
   public async pay(paymentOptions: PaymentOptions) {
-    const result = await fetch("https://account.venmo.com/api/payments", {
+    if (!this.accessToken || !this.csrfToken || !this.csrfCookie) {
+      throw new Error("You are not authenticated. Maybe run login first.");
+    }
+
+    return await fetch("https://account.venmo.com/api/payments", {
       method: "POST",
       headers: {
-        Cookie: `v_id=${DEVICE_ID}; api_access_token=${this.accessToken};`,
+        Cookie: `v_id=${DEVICE_ID}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken};`,
         "user-agent": USER_AGENT,
+        "csrf-token": this.csrfToken,
+        "xsrf-token": this.csrfToken,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(paymentOptions)
     });
-
-    return true;
   }
 }
