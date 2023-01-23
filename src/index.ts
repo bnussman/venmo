@@ -1,7 +1,8 @@
 import request, { gql } from 'graphql-request';
 import { DEVICE_ID, GRAPHQL_ENDPOINT, USER_AGENT } from './constants';
+import { FundingInstrumentsGraphQLResponse, FundingInstrumentsQuery } from './graphql/funding';
 import { PeopleQuery, Person } from './graphql/people';
-import { EligibilityOptions, EligibilityResponse, FundingInstrumentsGraphQLResponse, Identity, LoginResponse, Options, PaymentOptions, StoriesResponse } from './types';
+import { EligibilityOptions, EligibilityResponse, Identity, LoginResponse, Options, PaymentOptions, StoriesResponse } from './types';
 
 export class Venmo {
   private options: Options;
@@ -186,18 +187,17 @@ export class Venmo {
   }
 
   public async getFundingInstruments() {
-    const result = await fetch("https://api.venmo.com/graphql", {
-      method: "POST",
-      body: '{"operationName":"getUserFundingInstruments","variables":{},"query":"query getUserFundingInstruments {\n  profile {\n    ... on Profile {\n      identity {\n        ... on Identity {\n          capabilities\n          __typename\n        }\n        __typename\n      }\n      wallet {\n        id\n        assets {\n          logoThumbnail\n          __typename\n        }\n        instrumentType\n        name\n        fees {\n          feeType\n          fixedAmount\n          variablePercentage\n          __typename\n        }\n        metadata {\n          ...BalanceMetadata\n          ... on BankFundingInstrumentMetadata {\n            bankName\n            isVerified\n            lastFourDigits\n            uniqueIdentifier\n            __typename\n          }\n          ... on CardFundingInstrumentMetadata {\n            issuerName\n            lastFourDigits\n            networkName\n            isVenmoCard\n            expirationDate\n            expirationStatus\n            quasiCash\n            __typename\n          }\n          __typename\n        }\n        roles {\n          merchantPayments\n          peerPayments\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment BalanceMetadata on BalanceFundingInstrumentMetadata {\n  availableBalance {\n    value\n    transactionType\n    displayString\n    __typename\n  }\n  __typename\n}\n"}',
-      headers: {
+    const data = await request(
+      GRAPHQL_ENDPOINT,
+      FundingInstrumentsQuery,
+      {},
+      {
         Authorization: `Bearer ${this.accessToken}`,
         "user-agent": USER_AGENT,
       }
-    });
+    );
 
-    const data = await result.json() as FundingInstrumentsGraphQLResponse;
-
-    return data;
+    return data as FundingInstrumentsGraphQLResponse;
   }
 
   public async getPerson(name: string): Promise<Person | undefined> {

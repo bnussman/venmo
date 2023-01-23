@@ -137,69 +137,6 @@ export interface EligibilityResponse {
   fees: Fee[];
 }
 
-export interface FundingInstrumentsGraphQLResponse {
-  data: Data
-}
-
-export interface Data {
-  profile: Profile
-}
-
-export interface Profile {
-  identity: Identity
-  wallet: Wallet[]
-  __typename: string
-}
-
-export interface Identity {
-  capabilities: string[]
-  __typename: string
-}
-
-export interface Wallet {
-  id: string // this id is what you pass as fundingSourceID to make a payment 
-  assets?: Assets
-  instrumentType: string
-  name: string
-  fees: any[]
-  metadata: Metadata
-  roles: Roles
-  __typename: string
-}
-
-export interface Assets {
-  logoThumbnail: string
-  __typename: string
-}
-
-export interface Metadata {
-  availableBalance?: AvailableBalance
-  __typename: string
-  bankName?: string
-  isVerified?: boolean
-  lastFourDigits?: string
-  uniqueIdentifier?: string
-  issuerName?: string
-  networkName?: string
-  isVenmoCard?: boolean
-  expirationDate?: string
-  expirationStatus?: string
-  quasiCash?: boolean
-}
-
-export interface AvailableBalance {
-  value: number
-  transactionType: any
-  displayString: string
-  __typename: string
-}
-
-export interface Roles {
-  merchantPayments: string
-  peerPayments: string
-  __typename: string
-}
-
 export interface PaymentOptions {
   targetUserDetails: TargetUserDetails; // we need to get user ids from the Suggest or People graphql call
   amountInCents: number;
