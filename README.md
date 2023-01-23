@@ -1,13 +1,15 @@
-# venmo
+# Venmo 💳
 Venmo API for Typescript
 
-The people making desisons at @venmo are a bunch of *cowards* because they do not provide a way for developers to easily automate payments and transations with Venmo. This package exists because Venmo chose to be anti-developer. This package is intended to be used in Node.js backends, but will run in the browser if you want to it. 
+**The people making desisons at Venmo are a bunch of *cowards*** because they do not provide a way for developers to easily automate payments and transations with Venmo 🤬. This package exists because Venmo chose to be anti-developer. This package is intended to be used in Node.js backends, but will run in the browser if you want to it. 
 
-## Implimentation
+## Implimentation ⌨️
 
 This project is a Typescript port of the implimentation in [venmo-auto-transfer](https://github.com/radian-software/venmo-auto-transfer).
 
-## Install
+> **Warning**: This package is working as of *January 22, 2023*. It may not work in the future.
+
+## Install 📦
 
 ```sh
 # with npm
@@ -20,7 +22,7 @@ pnpm add @banksnussman/venmo
 bun add @banksnussman/venmo
 ```
 
-## Example Usage
+## Example Usage 💻
 
 This exmaple below shows an end-to-end flow of how you to authenticate, view transactions, find a user, and pay that user.
 
