@@ -1,10 +1,6 @@
 import { gql } from "graphql-request";
 
 export interface FundingInstrumentsGraphQLResponse {
-  data: Data
-}
-
-interface Data {
   profile: Profile
 }
 
@@ -22,7 +18,7 @@ interface Identity {
 interface Wallet {
   id: string // this id is what you pass as fundingSourceID to make a payment 
   assets?: Assets
-  instrumentType: string
+  instrumentType: 'balance' | 'debitCard' | 'bank' | 'creditCard';
   name: string
   fees: any[]
   metadata: Metadata

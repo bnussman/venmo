@@ -195,7 +195,7 @@ export class Venmo {
     return data;
   }
 
-  public async getFundingInstruments() {
+  public async getFundingInstruments(): Promise<FundingInstrumentsGraphQLResponse> {
     const data = await request(
       GRAPHQL_ENDPOINT,
       FundingInstrumentsQuery,
