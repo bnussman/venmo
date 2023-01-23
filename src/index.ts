@@ -1,8 +1,16 @@
-import request, { gql } from 'graphql-request';
+import { request } from 'graphql-request';
 import { DEVICE_ID, GRAPHQL_ENDPOINT, USER_AGENT } from './constants';
 import { FundingInstrumentsGraphQLResponse, FundingInstrumentsQuery } from './graphql/funding';
 import { PeopleQuery, Person } from './graphql/people';
-import { EligibilityOptions, EligibilityResponse, Identity, LoginResponse, Options, PaymentOptions, StoriesResponse } from './types';
+import {
+  EligibilityOptions,
+  EligibilityResponse,
+  Identity,
+  LoginResponse,
+  Options,
+  PaymentOptions,
+  StoriesResponse
+} from './types';
 
 export class Venmo {
   private options: Options;
@@ -14,7 +22,15 @@ export class Venmo {
     this.options = options;
   }
 
-  public async login() {
+  /**
+   * Login gets you a Venmo API autentication token, keeps it in
+   * memory, and returns it. This function does more than just make
+   * one call to the login endpoint. It has to make a few api calls
+   * to get an authentication token.
+   * 
+   * @returns {Promise<string>} venmo auth token
+   */
+  public async login(): Promise<string> {
     const loginResult = await fetch(
       "https://venmo.com/login", {
       headers: {
@@ -130,6 +146,13 @@ export class Venmo {
     return accessToken;
   }
 
+  /**
+   * Get all of the identities for a venmo account. This exists because
+   * one Venmo account can have many identities. For example venmo accounts
+   * can have a business venmo as one of the identities.
+   * 
+   * @returns {Promise<Identity[]>} account identities
+   */
   public async getIdentities(): Promise<Identity[]> {
     if (!this.accessToken) {
       throw new Error("You are not authenticated. Maybe run login first.");
@@ -150,6 +173,13 @@ export class Venmo {
     return data;
   }
 
+  /**
+   * This is one way to get a list of venmo transactions
+   *
+   * @param feedType the type of stories you want to see
+   * @param externalId the identity if that comes from `getIdentities`
+   * @returns venmo transactions
+   */
   public async getStories(feedType: 'me' | 'friend', externalId: string): Promise<StoriesResponse> {
     if (!this.accessToken) {
       throw new Error("You are not authenticated. Maybe run login first.");
@@ -170,6 +200,14 @@ export class Venmo {
     return data;
   }
 
+  /**
+   * This is needed to make a Venmo payment because you need the `eligibilityToken`
+   * when you call the `pay` function. Venmo checks all of the csrf bullshit, so
+   * that is all sent here.
+   * 
+   * @param eligibilityOptions just look at the typescript type to see what you need to pass
+   * @returns {Promise<EligibilityResponse>} eligibility of possible payment
+   */
   public async getEligibility(eligibilityOptions: EligibilityOptions): Promise<EligibilityResponse> {
     if (!this.accessToken || !this.csrfToken || !this.csrfCookie) {
       throw new Error("You are not authenticated. Maybe run login first.");
@@ -195,6 +233,14 @@ export class Venmo {
     return data;
   }
 
+  /**
+   * Use the function to see the payment methods on your account. You will need to
+   * specify the `id` of one of these payment methods when you want to make a payment
+   * with the `pay` function. This uses Venmo's GraphQL api so sorry if the Typescript
+   * types are bad.
+   * 
+   * @returns {Promise<FundingInstrumentsGraphQLResponse>} 
+   */
   public async getFundingInstruments(): Promise<FundingInstrumentsGraphQLResponse> {
     const data = await request(
       GRAPHQL_ENDPOINT,
@@ -209,6 +255,15 @@ export class Venmo {
     return data as FundingInstrumentsGraphQLResponse;
   }
 
+  /**
+   * Wrapper over the Venmo GraphQL API to get the first user that comes up
+   * in a search query. This function to useful to get the user id of a
+   * venmo user from their venmo username so that you can later make
+   * a payment to them with the `pay` function.
+   * 
+   * @param name search query (can be name or username)
+   * @returns the first person that matches the search query
+   */
   public async getPerson(name: string): Promise<Person | undefined> {
     const data = await request(
       GRAPHQL_ENDPOINT,
@@ -223,6 +278,12 @@ export class Venmo {
     return data.search.people.edges[0]?.node;
   }
 
+  /**
+   * Used to initiate a payment or payment request.
+   * 
+   * @param paymentOptions just look at the typescript type
+   * @returns the actual request because this endpoint returns an empty response?
+   */
   public async pay(paymentOptions: PaymentOptions) {
     if (!this.accessToken || !this.csrfToken || !this.csrfCookie) {
       throw new Error("You are not authenticated. Maybe run login first.");
