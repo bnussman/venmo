@@ -176,10 +176,13 @@ export class Venmo {
         headers: {
           Cookie: `v_id=${DEVICE_ID}; api_access_token=${this.accessToken};`,
           "user-agent": USER_AGENT,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(eligibilityOptions) 
       },
     );
+
+    console.log((await result.text()))
 
     const data = await result.json() as EligibilityResponse;
 
