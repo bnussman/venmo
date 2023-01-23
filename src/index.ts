@@ -7,6 +7,8 @@ import { EligibilityOptions, EligibilityResponse, Identity, LoginResponse, Optio
 export class Venmo {
   private options: Options;
   public accessToken: string | undefined;
+  public csrfToken: string | undefined;
+  public csrfCookie: string | undefined;
 
   constructor(options: Options) {
     this.options = options;
@@ -69,6 +71,8 @@ export class Venmo {
       throw new Error("Unable to parse _csrf cookie");
     }
 
+    this.csrfCookie = csrfCookie;
+
     const verifyBankText = await verifyBankResult.text();
 
     const csrfData = verifyBankText.match(/<script id="__NEXT_DATA__" type="application\/json">([^<>]+)<\/script>/)?.[1];
@@ -84,6 +88,8 @@ export class Venmo {
     if (!csrfToken) {
       throw new Error("Unable to find csrfToken within the nextjs data")
     }
+
+    this.csrfToken = csrfToken;
 
     const finalSignInResult = await fetch(
       "https://account.venmo.com/api/account/mfa/sign-in",
@@ -165,7 +171,7 @@ export class Venmo {
   }
 
   public async getEligibility(eligibilityOptions: EligibilityOptions): Promise<EligibilityResponse> {
-    if (!this.accessToken) {
+    if (!this.accessToken || !this.csrfToken || !this.csrfCookie) {
       throw new Error("You are not authenticated. Maybe run login first.");
     }
 
@@ -174,15 +180,15 @@ export class Venmo {
       {
         method: "POST",
         headers: {
-          Cookie: `v_id=${DEVICE_ID}; api_access_token=${this.accessToken};`,
+          Cookie: `v_id=${DEVICE_ID}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken};`,
           "user-agent": USER_AGENT,
+          "csrf-token": this.csrfToken,
+          "xsrf-token": this.csrfToken,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(eligibilityOptions) 
       },
     );
-
-    console.log((await result.text()))
 
     const data = await result.json() as EligibilityResponse;
 
