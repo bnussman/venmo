@@ -1,4 +1,5 @@
 import { request } from 'graphql-request';
+import { v4 } from 'uuid';
 import { DEVICE_ID, GRAPHQL_ENDPOINT, USER_AGENT } from './constants';
 import { FundingInstrumentsGraphQLResponse, FundingInstrumentsQuery } from './graphql/funding';
 import { PeopleQuery, Person } from './graphql/people';
@@ -294,10 +295,33 @@ export class Venmo {
       throw new Error("You are not authenticated. Maybe run login first.");
     }
 
+    const deviceResponse = await fetch("https://account.venmo.com/api/device-data", {
+      credentials: 'include',
+      method: "POST",
+      headers: {
+        Cookie: `v_id=${DEVICE_ID}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken}; login_email=${this.options.username};`,
+        "user-agent": USER_AGENT,
+        "csrf-token": this.csrfToken,
+        "xsrf-token": this.csrfToken,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        correlationId: v4(),
+      }),
+    });
+
+    const rawResponseCookies = deviceResponse.headers.get('set-cookie');
+
+    if (!rawResponseCookies) {
+      throw new Error("Did not recieve cookies when calling device data for w_fc token");
+    }
+
+    const w_fc = rawResponseCookies.split("w_fc=")?.[1]?.split(";")?.[0];
+
     return await fetch("https://account.venmo.com/api/payments", {
       method: "POST",
       headers: {
-        Cookie: `v_id=${DEVICE_ID}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken};`,
+        Cookie: `v_id=${DEVICE_ID}; w_fc=${w_fc}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken}; login_email=${this.options.username};`,
         "user-agent": USER_AGENT,
         "csrf-token": this.csrfToken,
         "xsrf-token": this.csrfToken,
