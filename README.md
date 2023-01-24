@@ -1,4 +1,7 @@
 # Venmo 💳
+
+![npm](https://img.shields.io/npm/dt/@banksnussman/venmo)
+
 Venmo API for Typescript
 
 **The people making desisons at Venmo are a bunch of *cowards*** because they do not provide a way for developers to easily automate payments and transations with Venmo 🤬. This package exists because Venmo chose to be anti-developer. This package is intended to be used in Node.js backends, but will run in the browser if you want to it. 
