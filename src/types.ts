@@ -1,7 +1,7 @@
 export interface Options {
   username: string;
   password: string;
-  bankAccountNumber: string | number;
+  bankAccountNumber: string;
 }
 
 export interface VenmoError {

@@ -27,7 +27,7 @@ export class Venmo {
    * memory, and returns it. This function does more than just make
    * one call to the login endpoint. It has to make a few api calls
    * to get an authentication token.
-   * 
+   *
    * @returns {Promise<string>} venmo auth token
    */
   public async login(): Promise<string> {
@@ -107,26 +107,30 @@ export class Venmo {
 
     this.csrfToken = csrfToken;
 
+    const mfaHeaders = {
+      'user-agent': USER_AGENT,
+      'Cookie': `v_id=${DEVICE_ID}; _csrf=${csrfCookie}; login_email=${this.options.username};`,
+      "csrf-token": csrfToken,
+      "xsrf-token": csrfToken,
+      "venmo-otp-secret": otpSecret,
+      'Content-Type': 'application/json',
+    };
+
     const finalSignInResult = await fetch(
       "https://account.venmo.com/api/account/mfa/sign-in",
       {
         method: "POST",
-        headers: {
-          'user-agent': USER_AGENT,
-          'Cookie': `v_id=${DEVICE_ID}; _csrf=${csrfCookie};`,
-          "csrf-token": csrfToken,
-          "xsrf-token": csrfToken,
-          "venmo-otp-secret": otpSecret,
-          'Content-Type': 'application/json',
-        },
+        headers: mfaHeaders,
         body: JSON.stringify({
-          "accountNumber": String(this.options.bankAccountNumber),
+          accountNumber: this.options.bankAccountNumber,
+          isGroup: false
         })
       }
     );
 
     if (![200, 201].includes(finalSignInResult.status)) {
       console.error((await finalSignInResult.text()));
+      console.log(mfaHeaders);
       throw new Error(`MFA Login was unsuccessful. Expected 200 status code but got ${finalSignInResult.status}`);
     }
 
