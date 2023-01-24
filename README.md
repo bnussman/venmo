@@ -1,6 +1,7 @@
 # Venmo 💳
 
 ![npm](https://img.shields.io/npm/dt/@banksnussman/venmo)
+![npm](https://img.shields.io/npm/v/@banksnussman/venmo)
 
 Venmo API for Typescript
 
