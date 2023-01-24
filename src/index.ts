@@ -126,6 +126,7 @@ export class Venmo {
     );
 
     if (![200, 201].includes(finalSignInResult.status)) {
+      console.error((await finalSignInResult.text()));
       throw new Error(`MFA Login was unsuccessful. Expected 200 status code but got ${finalSignInResult.status}`);
     }
 

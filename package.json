@@ -1,6 +1,6 @@
 {
   "name": "@banksnussman/venmo",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Interact with Venmo from Typescript",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
