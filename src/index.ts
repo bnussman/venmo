@@ -328,27 +328,45 @@ export class Venmo {
       throw new Error("You are not authenticated. Maybe run login first.");
     }
 
-    const headers = {
-      cookie: `v_id=${DEVICE_ID}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken}; w_fc=${this.w_fc}; login_email=${this.options.username};`,
-      "user-agent": USER_AGENT,
-      "csrf-token": this.csrfToken,
-      "xsrf-token": this.csrfToken,
-      'Content-Type': 'application/json',
-      origin: "https://account.venmo.com",
-      'Accept': '*/*',
-    };
+    const paymentPageResult = await fetch("https://account.venmo.com/pay", {
+      credentials: 'include',
+      headers: {
+        cookie: `v_id=${DEVICE_ID}; api_access_token=${this.accessToken};`,
+        "user-agent": USER_AGENT,
+      },
+    });
 
-    console.log("Headers", headers);
+    const verifyBankText = await paymentPageResult.text();
+
+    const csrfData = verifyBankText.match(/<script id="__NEXT_DATA__" type="application\/json">([^<>]+)<\/script>/)?.[1];
+
+    if (!csrfData) {
+      throw new Error("Unable to find next data that should contain our csrf token");
+    }
+
+    const parsedNextData = JSON.parse(csrfData);
+
+    const csrfToken = parsedNextData?.["props"]?.["pageProps"]?.["csrfToken"] as string | undefined;
+
+    if (!csrfToken) {
+      throw new Error("Unable to find csrfToken within the nextjs data")
+    }
+
+    this.csrfToken = csrfToken;
 
     return await fetch("https://account.venmo.com/api/payments", {
       method: "POST",
-      headers,
+      headers: {
+        cookie: `v_id=${DEVICE_ID}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken}; w_fc=${this.w_fc};`,
+        "user-agent": USER_AGENT,
+        "csrf-token": this.csrfToken,
+        "xsrf-token": this.csrfToken,
+        'Content-Type': 'application/json',
+      },
       credentials: 'include',
-      referrer: "https://account.venmo.com/",
       body: JSON.stringify(paymentOptions)
     });
   }
-
 
   public async oldPay(paymentOptions: OldPaymentOptions) {
     if (!this.accessToken || !this.csrfToken || !this.csrfCookie || !this.w_fc) {
