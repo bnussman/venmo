@@ -140,7 +140,7 @@ export interface EligibilityResponse {
 export interface PaymentOptions {
   targetUserDetails: TargetUserDetails; // we need to get user ids from the Suggest or People graphql call
   amountInCents: number;
-  audience?: 'public' | 'private';
+  audience: 'public' | 'private';
   note: string;
   type: "pay" | "request";
   fundingSourceID: string; // comes from getUserFundingInstruments graphql call

@@ -150,7 +150,52 @@ export class Venmo {
 
     this.accessToken = accessToken;
 
-    await this.sendDeviceData();
+    const rememberDeviceResponse = await fetch("https://account.venmo.com/remember-device", {
+      headers: {
+        Cookie: `v_id=${DEVICE_ID}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken}; login_email=${this.options.username};`,
+        "user-agent": USER_AGENT,
+      },
+    });
+
+    console.log("remeber device status code", rememberDeviceResponse.status);
+
+    const remeberPageText = await rememberDeviceResponse.text();
+
+    const nextData = remeberPageText.match(/<script id="__NEXT_DATA__" type="application\/json">([^<>]+)<\/script>/)?.[1];
+
+    if (!nextData) {
+      throw new Error("Unable to find next data that should contain our csrf token");
+    }
+
+    const newParsedNextData = JSON.parse(nextData);
+
+    const newCsrfToken = newParsedNextData?.["props"]?.["pageProps"]?.["csrfToken"] as string | undefined;
+
+    if (!newCsrfToken) {
+      throw new Error("Unable to find csrfToken within the nextjs data")
+    }
+
+    this.csrfToken = newCsrfToken;
+
+    const deviceResponse = await fetch("https://account.venmo.com/api/device-data", {
+      method: "POST",
+      headers: {
+        Cookie: `v_id=${DEVICE_ID}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken}; login_email=${this.options.username};`,
+        "user-agent": USER_AGENT,
+        "csrf-token": this.csrfToken,
+        "xsrf-token": this.csrfToken,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        correlationId: this.w_fc,
+      }),
+    });
+
+    console.log("Device Data Cookie Response", deviceResponse.headers.get("set-cookie"))
+
+    if (deviceResponse.status !== 200) {
+      throw new Error(`Error while sending device data. Expected 200 but got ${deviceResponse.status}`);
+    }
 
     return accessToken;
   }
@@ -295,24 +340,6 @@ export class Venmo {
       throw new Error("You are not authenticated. Maybe run login first.");
     }
 
-    const deviceResponse = await fetch("https://account.venmo.com/api/device-data", {
-      credentials: 'include',
-      method: "POST",
-      headers: {
-        Cookie: `v_id=${DEVICE_ID}; w_fc=${this.w_fc}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken}; login_email=${this.options.username};`,
-        "user-agent": USER_AGENT,
-        "csrf-token": this.csrfToken,
-        "xsrf-token": this.csrfToken,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        correlationId: this.w_fc,
-      }),
-    });
-
-    if (deviceResponse.status !== 200) {
-      throw new Error(`Error while sending device data. Expected 200 but got ${deviceResponse.status}`);
-    }
 
     return this.w_fc;
   }
@@ -323,18 +350,22 @@ export class Venmo {
    * @param paymentOptions just look at the typescript type
    * @returns the actual request because this endpoint returns an empty response?
    */
-  public async pay(paymentOptions: PaymentOptions) {
+  public async pay(paymentOptions: Omit<PaymentOptions, 'eligibilityToken'>) {
     if (!this.accessToken || !this.csrfToken || !this.csrfCookie || !this.w_fc) {
       throw new Error("You are not authenticated. Maybe run login first.");
     }
 
+    console.log("csrfToken First", this.csrfToken);
+
     const paymentPageResult = await fetch("https://account.venmo.com/pay", {
       credentials: 'include',
       headers: {
-        cookie: `v_id=${DEVICE_ID}; api_access_token=${this.accessToken};`,
+        cookie: `v_id=${DEVICE_ID}; api_access_token=${this.accessToken}; _csrf=${this.csrfCookie}; w_fc=${this.w_fc};`,
         "user-agent": USER_AGENT,
       },
     });
+
+    console.log("Payment Page Status", paymentPageResult.status, paymentPageResult.statusText)
 
     const verifyBankText = await paymentPageResult.text();
 
@@ -354,20 +385,56 @@ export class Venmo {
 
     this.csrfToken = csrfToken;
 
+    const eligibilityData: EligibilityOptions = {
+      targetType: "user_id",
+      targetId: paymentOptions.targetUserDetails.userId,
+      amountInCents: paymentOptions.amountInCents,
+      action: paymentOptions.type,
+      note: paymentOptions.note,
+    };
+
+    const eligibilityResponse = await fetch(
+      `https://account.venmo.com/api/eligibility`,
+      {
+        method: "POST",
+        headers: {
+          cookie: `v_id=${DEVICE_ID}; w_fc=${this.w_fc}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken}; login_email=${this.options.username}`,
+          "user-agent": USER_AGENT,
+          "csrf-token": this.csrfToken,
+          "xsrf-token": this.csrfToken,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(eligibilityData),
+      },
+    );
+
+    const eligibility = await eligibilityResponse.json() as EligibilityResponse;
+   
+    const paymentData: PaymentOptions = {
+      ...paymentOptions,
+      eligibilityToken: eligibility.eligibilityToken,
+    };
+
+    const headers = {
+      cookie: `v_id=${DEVICE_ID}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken}; w_fc=${this.w_fc}; login_email=${this.options.username}`,
+      "user-agent": USER_AGENT,
+      "csrf-token": this.csrfToken,
+      "xsrf-token": this.csrfToken,
+      'Content-Type': 'application/json',
+    }
+
+    console.log("POST /api/payments - Data", paymentData);
+    console.log("POST /api/payments - Headers", headers);
+    console.log("csrfToken Second", this.csrfToken);
+
     return await fetch("https://account.venmo.com/api/payments", {
       method: "POST",
-      headers: {
-        cookie: `v_id=${DEVICE_ID}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken}; w_fc=${this.w_fc};`,
-        "user-agent": USER_AGENT,
-        "csrf-token": this.csrfToken,
-        "xsrf-token": this.csrfToken,
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(paymentOptions)
+      headers,
+      body: JSON.stringify(paymentData)
     });
   }
 
+  /*
   public async oldPay(paymentOptions: OldPaymentOptions) {
     if (!this.accessToken || !this.csrfToken || !this.csrfCookie || !this.w_fc) {
       throw new Error("You are not authenticated. Maybe run login first.");
@@ -386,4 +453,5 @@ export class Venmo {
       body: JSON.stringify(paymentOptions)
     });
   }
+  */
 }
