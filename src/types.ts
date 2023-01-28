@@ -1,4 +1,4 @@
-export interface Options {
+export interface VenmoCredentials {
   username: string;
   password: string;
   bankAccountNumber: string;
@@ -137,7 +137,7 @@ export interface EligibilityResponse {
   fees: Fee[];
 }
 
-export interface PaymentOptions {
+export interface BrokenPaymentOptions {
   targetUserDetails: TargetUserDetails; // we need to get user ids from the Suggest or People graphql call
   amountInCents: number;
   audience: 'public' | 'private';
@@ -147,6 +147,11 @@ export interface PaymentOptions {
   eligibilityToken: string; // comes from eligibility endpoint
 }
 
+export interface PaymentOptions {
+  username: string;
+  amount: number;
+  note: string;
+}
 
 export interface OldPaymentOptions {
   funding_source_id: number | string;
