@@ -152,33 +152,6 @@ export class Venmo {
 
     this.accessToken = accessToken;
 
-    const rememberDeviceResponse = await fetch("https://account.venmo.com/remember-device", {
-      headers: {
-        Cookie: `v_id=${DEVICE_ID}; _csrf=${this.csrfCookie}; api_access_token=${this.accessToken};`,
-        "user-agent": USER_AGENT,
-      },
-    });
-
-    console.log("remeber device status code", rememberDeviceResponse.status);
-
-    const remeberPageText = await rememberDeviceResponse.text();
-
-    const nextData = remeberPageText.match(/<script id="__NEXT_DATA__" type="application\/json">([^<>]+)<\/script>/)?.[1];
-
-    if (!nextData) {
-      throw new Error("Unable to find next data that should contain our csrf token");
-    }
-
-    const newParsedNextData = JSON.parse(nextData);
-
-    const newCsrfToken = newParsedNextData?.["props"]?.["pageProps"]?.["csrfToken"] as string | undefined;
-
-    if (!newCsrfToken) {
-      throw new Error("Unable to find csrfToken within the nextjs data")
-    }
-
-    this.csrfToken = newCsrfToken;
-
     const deviceResponse = await fetch("https://account.venmo.com/api/device-data", {
       method: "POST",
       headers: {
