@@ -57,14 +57,6 @@ if (!ian) {
   throw new Error("Unable to find Ian");
 }
 
-const eligelity = await v.getEligibility({
-  targetType: "user_id",
-  targetId: ian.id,
-  amountInCents: 31,
-  action: "pay",
-  note: "Dinner"
-});
-
 const funding = await v.getFundingInstruments();
 
 const debitCard = funding.profile.wallet.find(walletItem => walletItem.instrumentType === 'debitCard');
@@ -73,17 +65,26 @@ if (!debitCard) {
   throw new Error("Could not find debit card");
 }
 
-const paymentDetails = {
+const balance = v.pay({
+  username: "ian-murphy-35",
+  amount: 0.01,
+  note: "if venmo is going to be lame, we can just use playwright",
+});
+
+console.log("New Balance", balance);
+
+/*
+This does not work :(
+Somone please help
+const payment = await v.brokenPay({
   targetUserDetails: { userId: ian.id },
-  amountInCents: 31,
+  amountInCents: 1,
   audience: 'private',
-  note: "Dinner",
+  note: "venmo sucks for making this so hard",
   type: "pay",
   fundingSourceID: debitCard.id,
-  eligibilityToken: eligelity.eligibilityToken
-} as const;
+});
 
-const payment = await v.pay(paymentDetails);
-
-console.log("Payment", paymentDetails, payment)
+console.log("Payment", payment)
+*/
 ```
