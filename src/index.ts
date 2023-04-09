@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { request } from 'graphql-request';
 import { v4 } from 'uuid';
 import { DEVICE_ID, GRAPHQL_ENDPOINT, USER_AGENT } from './constants';

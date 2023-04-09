@@ -1,10 +1,19 @@
-import { webkit } from 'playwright';
-import { VenmoCredentials, PaymentOptions } from './types';
+import "dotenv/config";
+import { test } from '@playwright/test';
 
-export async function payment(options: PaymentOptions, credentials: VenmoCredentials) {
-  const browser = await webkit.launch();
-  const page = await browser.newPage();
+const credentials = {
+  username: process.env.VENMO_USERNAME ?? "",
+  password: process.env.VENMO_PASSWORD ?? "",
+  bankAccountNumber: process.env.VENMO_BANK_ACCOUNT_NUMBER ?? "",
+};
 
+const options = {
+  username: 'Ian-Murphy-35',
+  amount: 0.01,
+  note: "hey ian"
+}
+
+test('pay', async ({ page }) => {
   await page.goto('https://account.venmo.com/');
   await page.waitForLoadState("networkidle");
   const pageTitle = await page.title();
@@ -41,11 +50,7 @@ export async function payment(options: PaymentOptions, credentials: VenmoCredent
 
   const balanceData: string = await page.getByTestId('money').innerText();
   const balance = Number(balanceData.split("$")[1]);
+  console.log("Your Balance", balance)
 
   await page.getByRole('button', { name: 'Pay' }).click();
-  await page.context().storageState({ path: 'storage.json' });
-  await browser.close();
-
-  return balance - options.amount;
-}
-
+});
