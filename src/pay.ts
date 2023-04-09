@@ -1,8 +1,8 @@
-import { webkit } from 'playwright';
+import { chromium } from 'playwright';
 import { VenmoCredentials, PaymentOptions } from './types';
 
 export async function payment(options: PaymentOptions, credentials: VenmoCredentials) {
-  const browser = await webkit.launch();
+  const browser = await chromium.launch();
   const page = await browser.newPage();
 
   await page.goto('https://account.venmo.com/');
